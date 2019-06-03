@@ -14,7 +14,7 @@ public class InternalCrnBuilder {
         this.serviceType = serviceType;
     }
 
-    public Crn getInternalCrnForService(){
+    public Crn getInternalCrnForService() {
         return Crn.builder()
                 .setService(serviceType)
                 .setAccountId(INTERNAL_ACCOUNT)
@@ -23,7 +23,7 @@ public class InternalCrnBuilder {
                 .build();
     }
 
-    public String getInternalCrnForServiceAsString(){
+    public String getInternalCrnForServiceAsString() {
         return getInternalCrnForService().toString();
     }
 }

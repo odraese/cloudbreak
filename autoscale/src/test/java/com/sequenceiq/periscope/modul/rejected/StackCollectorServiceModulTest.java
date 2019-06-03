@@ -33,7 +33,9 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.autoscales.AutoscaleV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.autoscales.response.AutoscaleStackV4Responses;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.AutoscaleStackV4Response;
+import com.sequenceiq.cloudbreak.auth.altus.InternalCrnBuilder;
 import com.sequenceiq.cloudbreak.client.CloudbreakUserCrnClient;
+import com.sequenceiq.cloudbreak.client.CloudbreakUserCrnClient.CloudbreakEndpoint;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.periscope.api.model.ClusterState;
 import com.sequenceiq.periscope.domain.Cluster;
@@ -77,7 +79,13 @@ public class StackCollectorServiceModulTest extends StackCollectorContext {
     private CloudbreakUserCrnClient cloudbreakClient;
 
     @Mock
+    private InternalCrnBuilder internalCrnBuilder;
+
+    @Mock
     private AmbariClient ambariClient;
+
+    @Mock
+    private CloudbreakEndpoint cloudbreakEndpoint;
 
     @Mock
     private AutoscaleV4Endpoint autoscaleEndpoint;
@@ -91,6 +99,10 @@ public class StackCollectorServiceModulTest extends StackCollectorContext {
 
         when(ambariClientProvider.createAmbariClient(any())).thenReturn(ambariClient);
         when(cloudbreakClientConfiguration.cloudbreakClient()).thenReturn(cloudbreakClient);
+        when(cloudbreakClientConfiguration.internalCrnBuilder()).thenReturn(internalCrnBuilder);
+        when(internalCrnBuilder.getInternalCrnForServiceAsString()).thenReturn("crn");
+        when(cloudbreakClient.withCrn(anyString())).thenReturn(cloudbreakEndpoint);
+        when(cloudbreakEndpoint.autoscaleEndpoint()).thenReturn(autoscaleEndpoint);
         when(cloudbreakClient.withCrn(anyString()).autoscaleEndpoint()).thenReturn(autoscaleEndpoint);
 
         ReflectionTestUtils.setField(rejectedThreadService, "rejectedThreads", new ConcurrentHashMap<>());

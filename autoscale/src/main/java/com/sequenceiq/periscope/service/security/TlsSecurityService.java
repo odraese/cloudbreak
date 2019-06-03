@@ -31,7 +31,8 @@ public class TlsSecurityService {
     private SecretService secretService;
 
     public SecurityConfig prepareSecurityConfig(Long stackId) {
-        CertificateV4Response response = cloudbreakClient.withCrn(cloudbreakInternalCrn.getInternalCrnForServiceAsString()).autoscaleEndpoint().getCertificate(stackId);
+        CertificateV4Response response = cloudbreakClient.withCrn(cloudbreakInternalCrn.getInternalCrnForServiceAsString())
+                .autoscaleEndpoint().getCertificate(stackId);
         return new SecurityConfig(response.getClientKeyPath(), response.getClientCertPath(), response.getServerCert());
     }
 

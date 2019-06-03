@@ -30,13 +30,7 @@ public class AuthenticatedUserService {
 
     public CloudbreakUser getCbUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof OAuth2Authentication) {
-            OAuth2Authentication oauth = (OAuth2Authentication) authentication;
-            if (oauth.getUserAuthentication() != null) {
-                return authenticationService.getCloudbreakUser(oauth);
-            }
-        }
-        return null;
+        return authenticationService.getCloudbreakUser(authentication);
     }
 
     public String getAccountId() {

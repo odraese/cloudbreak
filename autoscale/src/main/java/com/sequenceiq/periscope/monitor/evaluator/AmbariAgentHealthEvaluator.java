@@ -106,7 +106,8 @@ public class AmbariAgentHealthEvaluator extends EvaluatorExecutor {
                     CloudbreakUserCrnClient cbClient = cloudbreakClientConfiguration.cloudbreakClient();
                     FailureReportV4Request failureReport = new FailureReportV4Request();
                     failureReport.setFailedNodes(hostNamesToRecover);
-                    cbClient.withCrn(internalCrnBuilder.getInternalCrnForServiceAsString()).autoscaleEndpoint().failureReport(cluster.getStackId(), failureReport);
+                    cbClient.withCrn(internalCrnBuilder.getInternalCrnForServiceAsString())
+                            .autoscaleEndpoint().failureReport(cluster.getStackId(), failureReport);
                 }
             }
         } catch (Exception e) {
