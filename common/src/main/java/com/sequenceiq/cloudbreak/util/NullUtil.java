@@ -2,10 +2,17 @@ package com.sequenceiq.cloudbreak.util;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class NullUtil {
 
     private NullUtil() {
+    }
+
+    public static <T extends Throwable> void throwIfNull(Object value, Supplier<T> doTheThing) {
+        if (value == null) {
+            doTheThing.get();
+        }
     }
 
     public static <T> void doIfNotNull(T value, Consumer<T> consumer) {

@@ -24,7 +24,6 @@ public class RecipeDeleteAction implements Action<RecipeTestDto, CloudbreakClien
                         .recipeV4Endpoint()
                         .delete(cloudbreakClient.getWorkspaceId(), testDto.getName()));
         Log.logJSON(LOGGER, format(" Recipe created  successfully:%n"), testDto.getResponse());
-        Log.log(LOGGER, String.format(" ID: %s", testDto.getResponse().getId()));
 
         return testDto;
     }

@@ -36,6 +36,8 @@ public class Recipe implements ProvisionEntity, WorkspaceAwareResource, Archivab
     @Column(nullable = false)
     private String name;
 
+    private String resourceCrn;
+
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -49,12 +51,30 @@ public class Recipe implements ProvisionEntity, WorkspaceAwareResource, Archivab
     @ManyToOne
     private Workspace workspace;
 
+    private String creator;
+
     private boolean archived;
 
     private Long deletionTimestamp = -1L;
 
     public Long getId() {
         return id;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getResourceCrn() {
+        return resourceCrn;
+    }
+
+    public void setResourceCrn(String resourceCrn) {
+        this.resourceCrn = resourceCrn;
     }
 
     public void setId(Long id) {

@@ -27,7 +27,6 @@ import com.sequenceiq.it.cloudbreak.dto.database.DatabaseTestDto;
 import com.sequenceiq.it.cloudbreak.dto.imagecatalog.ImageCatalogTestDto;
 import com.sequenceiq.it.cloudbreak.dto.kubernetes.KubernetesTestDto;
 import com.sequenceiq.it.cloudbreak.dto.mpack.MPackTestDto;
-import com.sequenceiq.it.cloudbreak.dto.recipe.RecipeTestDto;
 import com.sequenceiq.it.cloudbreak.testcase.AbstractIntegrationTest;
 
 public class AuditTest extends AbstractIntegrationTest {
@@ -82,7 +81,7 @@ public class AuditTest extends AbstractIntegrationTest {
         initializeDefaultBlueprints(testContext);
     }
 
-    @Test(dataProvider = TEST_CONTEXT_WITH_MOCK)
+/*    @Test(dataProvider = TEST_CONTEXT_WITH_MOCK, enabled = false)
     @Description(
             given = "there is a running cloudbreak",
             when = "a recipe is created",
@@ -93,14 +92,14 @@ public class AuditTest extends AbstractIntegrationTest {
                 .given(RecipeTestDto.class)
                 .withName(recipeName)
                 .when(recipeTestClient.createV4(), key(recipeName))
-                .select(recipe -> recipe.getResponse().getId(), key(recipeName))
+                .select(recipe -> recipe.getResponse().getResourceCrn(), key(recipeName))
                 .given(AuditTestDto.class)
                 .withResourceIdByKey(recipeName)
                 .withResourceType("recipes")
                 .when(auditTestClient.listV4(), key(recipeName))
                 .then(AuditTestAssertion.listContainsAtLeast(1), key(recipeName))
                 .validate();
-    }
+    }*/
 
     @Test(dataProvider = TEST_CONTEXT_WITH_MOCK)
     @Description(

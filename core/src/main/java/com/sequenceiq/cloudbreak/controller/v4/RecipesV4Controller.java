@@ -8,6 +8,7 @@ import javax.transaction.Transactional.TxType;
 
 import org.springframework.stereotype.Controller;
 
+import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
 import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.recipes.RecipeV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.recipes.requests.RecipeV4Request;
@@ -32,6 +33,9 @@ public class RecipesV4Controller extends NotificationController implements Recip
     @Inject
     private ConverterUtil converterUtil;
 
+    @Inject
+    private ThreadBasedUserCrnProvider threadBasedUserCrnProvider;
+
     @Override
     public RecipeViewV4Responses list(Long workspaceId) {
         Set<RecipeView> allViewByWorkspaceId = recipeService.findAllViewByWorkspaceId(workspaceId);
@@ -46,7 +50,10 @@ public class RecipesV4Controller extends NotificationController implements Recip
 
     @Override
     public RecipeV4Response post(Long workspaceId, RecipeV4Request request) {
-        Recipe recipe = recipeService.createForLoggedInUser(converterUtil.convert(request, Recipe.class), workspaceId);
+        String accountId = threadBasedUserCrnProvider.getAccountId();
+        String creator = threadBasedUserCrnProvider.getUserCrn();
+        Recipe recipeToSave = converterUtil.convert(request, Recipe.class);
+        Recipe recipe = recipeService.createForLoggedInUser(recipeToSave, workspaceId, accountId, creator);
         notify(ResourceEvent.RECIPE_CREATED);
         return converterUtil.convert(recipe, RecipeV4Response.class);
     }

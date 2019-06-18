@@ -1,32 +1,36 @@
 package com.sequenceiq.cloudbreak.service.recipe;
 
 import static com.sequenceiq.cloudbreak.exception.NotFoundException.notFound;
+import static com.sequenceiq.cloudbreak.util.NullUtil.throwIfNull;
 import static java.util.Collections.emptySet;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
-import com.sequenceiq.cloudbreak.exception.BadRequestException;
-import com.sequenceiq.cloudbreak.exception.NotFoundException;
+import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.domain.Recipe;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
 import com.sequenceiq.cloudbreak.domain.view.RecipeView;
-import com.sequenceiq.cloudbreak.workspace.model.Workspace;
+import com.sequenceiq.cloudbreak.exception.BadRequestException;
+import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.repository.RecipeRepository;
 import com.sequenceiq.cloudbreak.repository.RecipeViewRepository;
-import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
 import com.sequenceiq.cloudbreak.service.AbstractArchivistService;
 import com.sequenceiq.cloudbreak.service.hostgroup.HostGroupService;
+import com.sequenceiq.cloudbreak.workspace.model.Workspace;
+import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
+import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
 
 @Service
 public class RecipeService extends AbstractArchivistService<Recipe> {
@@ -55,6 +59,12 @@ public class RecipeService extends AbstractArchivistService<Recipe> {
 
     public Recipe get(Long id) {
         return repository().findById(id).orElseThrow(notFound("Recipe", id));
+    }
+
+    public Recipe createForLoggedInUser(Recipe recipe, @Nonnull Long workspaceId, String accountId, String creator) {
+        recipe.setResourceCrn(createCRN(accountId));
+        recipe.setCreator(creator);
+        return super.createForLoggedInUser(recipe, workspaceId);
     }
 
     private String collectMissingRecipeNames(Set<Recipe> recipes, Collection<String> recipeNames) {
@@ -101,4 +111,16 @@ public class RecipeService extends AbstractArchivistService<Recipe> {
     @Override
     protected void prepareCreation(Recipe resource) {
     }
+
+    private String createCRN(String accountId) {
+        throwIfNull(accountId, IllegalArgumentException::new);
+        return Crn.builder()
+                .setService(Crn.Service.CLOUDBREAK)
+                .setAccountId(accountId)
+                .setResourceType(Crn.ResourceType.RECIPE)
+                .setResource(UUID.randomUUID().toString())
+                .build()
+                .toString();
+    }
+
 }
