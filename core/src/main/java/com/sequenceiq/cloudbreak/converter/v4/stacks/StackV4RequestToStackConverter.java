@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.repackaged.com.google.common.base.Strings;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DetailedStackStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.StackType;
@@ -71,6 +72,9 @@ import com.sequenceiq.cloudbreak.type.KerberosType;
 import com.sequenceiq.cloudbreak.workspace.model.User;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 import com.sequenceiq.environment.api.v1.environment.model.response.DetailedEnvironmentResponse;
+import com.sequenceiq.environment.api.v1.environment.model.response.LoggingResponse;
+import com.sequenceiq.environment.api.v1.environment.model.response.TelemetryResponse;
+import com.sequenceiq.environment.api.v1.environment.model.response.WorkloadAnalyticsResponse;
 
 @Component
 public class StackV4RequestToStackConverter extends AbstractConversionServiceAwareConverter<StackV4Request, Stack> {
@@ -149,7 +153,7 @@ public class StackV4RequestToStackConverter extends AbstractConversionServiceAwa
         stack.setCreated(clock.getCurrentTimeMillis());
         stack.setInstanceGroups(convertInstanceGroups(source, stack));
         updateCluster(source, stack, workspace);
-        stack.getComponents().add(getTelemetryComponent(source, stack));
+        stack.getComponents().add(getTelemetryComponent(source, stack, environment));
         setNetworkIfApplicable(source, stack, environment);
 
         stack.setGatewayPort(source.getGatewayPort());
@@ -199,28 +203,58 @@ public class StackV4RequestToStackConverter extends AbstractConversionServiceAwa
         }
     }
 
-    private com.sequenceiq.cloudbreak.domain.stack.Component getTelemetryComponent(StackV4Request source, Stack stack) {
-        try {
-            TelemetryV4Request telemetryRequest = source.getTelemetry();
-            Logging logging = null;
-            WorkloadAnalytics workloadAnalytics = null;
-            if (telemetryRequest != null) {
-                if (telemetryRequest.getLogging() != null) {
-                    LoggingV4Request loggingRequest = telemetryRequest.getLogging();
-                    logging = new Logging(loggingRequest.isEnabled(), loggingRequest.getOutput(), loggingRequest.getAttributes());
-                }
-                if (telemetryRequest.getWorkloadAnalytics() != null) {
-                    WorkloadAnalyticsV4Request waRequest = telemetryRequest.getWorkloadAnalytics();
-                    workloadAnalytics = new WorkloadAnalytics(waRequest.isEnabled(), waRequest.getDatabusEndpoint(),
-                            waRequest.getAccessKey(), waRequest.getPrivateKey(), waRequest.getAttributes());
-                }
+    private com.sequenceiq.cloudbreak.domain.stack.Component getTelemetryComponent(StackV4Request source, Stack stack, DetailedEnvironmentResponse environment) {
+        TelemetryResponse envTelemetryResp = environment != null ? environment.getTelemetry() : null;
+        TelemetryV4Request telemetryRequest = source.getTelemetry();
+        Logging logging = null;
+        WorkloadAnalytics workloadAnalytics = null;
+        if (telemetryRequest != null) {
+            if (telemetryRequest.getLogging() != null) {
+                LoggingV4Request loggingRequest = telemetryRequest.getLogging();
+                logging = new Logging(loggingRequest.isEnabled(), loggingRequest.getOutput(), loggingRequest.getAttributes());
             }
-            Telemetry telemetry = new Telemetry(logging, workloadAnalytics);
+            if (telemetryRequest.getWorkloadAnalytics() != null) {
+                WorkloadAnalyticsV4Request waRequest = telemetryRequest.getWorkloadAnalytics();
+                workloadAnalytics = new WorkloadAnalytics(waRequest.isEnabled(), waRequest.getDatabusEndpoint(),
+                        waRequest.getAccessKey(), waRequest.getPrivateKey(), waRequest.getAttributes());
+            }
+        }
+        Telemetry telemetry = mergeGlobalAndStackLevelTelemetry(envTelemetryResp, new Telemetry(logging, workloadAnalytics));
+        try {
             return new com.sequenceiq.cloudbreak.domain.stack.Component(ComponentType.TELEMETRY, ComponentType.TELEMETRY.name(), Json.silent(telemetry), stack);
         } catch (Exception e) {
             LOGGER.debug("Exception during reading telemetry settings.", e);
             throw new BadRequestException("Failed to convert dynamic telemetry settingss.");
         }
+    }
+
+    @VisibleForTesting
+    Telemetry mergeGlobalAndStackLevelTelemetry(TelemetryResponse envTelemetry, Telemetry stackTelemetry) {
+        Logging logging = null;
+        WorkloadAnalytics wa = null;
+        if (envTelemetry != null) {
+            if (envTelemetry.getLogging() != null) {
+                LOGGER.debug("Found global (environment) telemetry (logging) settings.");
+                LoggingResponse loggingResponse = envTelemetry.getLogging();
+                logging = new Logging(loggingResponse.isEnabled(), loggingResponse.getOutput(), loggingResponse.getAttributes());
+            }
+            if (envTelemetry.getWorkloadAnalytics() != null) {
+                LOGGER.debug("Found global (environment) telemetry (workload analytics) settings.");
+                WorkloadAnalyticsResponse waResponse = envTelemetry.getWorkloadAnalytics();
+                wa = new WorkloadAnalytics(waResponse.isEnabled(), waResponse.getDatabusEndpoint(), null, null, waResponse.getAttributes());
+            }
+        }
+        if (stackTelemetry != null) {
+            if (stackTelemetry.getLogging() != null) {
+                LOGGER.debug("Found stack level telemetry (logging) settings. It will override enviroment level telemetry configs.");
+                logging = stackTelemetry.getLogging();
+            }
+            if (stackTelemetry.getWorkloadAnalytics() != null) {
+                LOGGER.debug("Found stack level telemetry (workload analytics) settings. It will override enviroment level telemetry configs.");
+                wa = stackTelemetry.getWorkloadAnalytics();
+            }
+        }
+        return new Telemetry(logging, wa);
     }
 
     private void updateCloudPlatformAndRelatedFields(StackV4Request source, Stack stack, Workspace workspace, DetailedEnvironmentResponse environment) {

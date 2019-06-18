@@ -78,6 +78,7 @@ public abstract class EnvironmentBaseNetworkConverter implements EnvironmentNetw
         environmentView.setNetwork(environment.getNetwork());
         environmentView.setRegions(environment.getRegions());
         environmentView.setName(environment.getName());
+        environmentView.setTelemetry(environment.getTelemetry());
         return environmentView;
     }
 
@@ -93,6 +94,7 @@ public abstract class EnvironmentBaseNetworkConverter implements EnvironmentNetw
         environmentView.setLocation(environmentDto.getLocation().getName());
         environmentView.setLocationDisplayName(environmentDto.getLocation().getDisplayName());
         environmentView.setRegions(environmentDto.getRegions());
+        environmentView.setTelemetry(environmentDto.getTelemetry());
         environmentView.setName(environmentDto.getName());
         return environmentView;
     }

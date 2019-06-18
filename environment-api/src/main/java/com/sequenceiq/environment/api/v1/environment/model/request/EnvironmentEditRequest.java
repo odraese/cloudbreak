@@ -27,6 +27,9 @@ public class EnvironmentEditRequest {
     @ApiModelProperty(EnvironmentModelDescription.NETWORK)
     private EnvironmentNetworkRequest network;
 
+    @ApiModelProperty(EnvironmentModelDescription.TELEMETRY)
+    private TelemetryRequest telemetry;
+
     public String getDescription() {
         return description;
     }
@@ -57,5 +60,13 @@ public class EnvironmentEditRequest {
 
     public void setNetwork(EnvironmentNetworkRequest network) {
         this.network = network;
+    }
+
+    public TelemetryRequest getTelemetry() {
+        return telemetry;
+    }
+
+    public void setTelemetry(TelemetryRequest telemetry) {
+        this.telemetry = telemetry;
     }
 }

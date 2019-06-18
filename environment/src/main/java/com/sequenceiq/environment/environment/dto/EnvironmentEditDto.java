@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.sequenceiq.cloudbreak.cloud.model.Telemetry;
 import com.sequenceiq.environment.network.dto.NetworkDto;
 
 public class EnvironmentEditDto {
@@ -15,6 +16,8 @@ public class EnvironmentEditDto {
 
     private final String accountId;
 
+    private final Telemetry telemetry;
+
     private LocationDto location;
 
     private NetworkDto network;
@@ -24,7 +27,8 @@ public class EnvironmentEditDto {
         Set<String> regions,
         String accountId,
         LocationDto location,
-        NetworkDto network) {
+        NetworkDto network,
+        Telemetry telemetry) {
         this.description = description;
         this.accountId = accountId;
         if (CollectionUtils.isEmpty(regions)) {
@@ -34,6 +38,7 @@ public class EnvironmentEditDto {
         }
         this.network = network;
         this.location = location;
+        this.telemetry = telemetry;
     }
 
     public String getDescription() {
@@ -60,6 +65,10 @@ public class EnvironmentEditDto {
         return network;
     }
 
+    public Telemetry getTelemetry() {
+        return telemetry;
+    }
+
     public static final class EnvironmentEditDtoBuilder {
         private String description;
 
@@ -70,6 +79,8 @@ public class EnvironmentEditDto {
         private LocationDto location;
 
         private NetworkDto network;
+
+        private Telemetry telemetry;
 
         private EnvironmentEditDtoBuilder() {
         }
@@ -103,8 +114,13 @@ public class EnvironmentEditDto {
             return this;
         }
 
+        public EnvironmentEditDtoBuilder withTelemetry(Telemetry telemetry) {
+            this.telemetry = telemetry;
+            return this;
+        }
+
         public EnvironmentEditDto build() {
-            return new EnvironmentEditDto(description, regions, accountId, location, network);
+            return new EnvironmentEditDto(description, regions, accountId, location, network, telemetry);
         }
 
     }

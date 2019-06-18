@@ -19,6 +19,8 @@ import com.sequenceiq.environment.api.v1.environment.model.response.EnvironmentN
 import com.sequenceiq.environment.api.v1.environment.model.response.LocationResponse;
 import com.sequenceiq.environment.api.v1.environment.model.response.SimpleEnvironmentResponse;
 import com.sequenceiq.environment.credential.v1.converter.CredentialToCredentialV1ResponseConverter;
+import com.sequenceiq.environment.credential.v1.converter.TelemetryRequestToTelemetryConverter;
+import com.sequenceiq.environment.credential.v1.converter.TelemetryToTelemetryResponseConverter;
 import com.sequenceiq.environment.environment.dto.EnvironmentChangeCredentialDto;
 import com.sequenceiq.environment.environment.dto.EnvironmentCreationDto;
 import com.sequenceiq.environment.environment.dto.EnvironmentDto;
@@ -38,13 +40,21 @@ public class EnvironmentApiConverter {
 
     private final CredentialToCredentialV1ResponseConverter credentialConverter;
 
+    private final TelemetryRequestToTelemetryConverter telemetryRequestConverter;
+
+    private final TelemetryToTelemetryResponseConverter telemetryResponseConverter;
+
     public EnvironmentApiConverter(ThreadBasedUserCrnProvider threadBasedUserCrnProvider,
             RegionConverter regionConverter,
-            CredentialToCredentialV1ResponseConverter credentialConverter
+            CredentialToCredentialV1ResponseConverter credentialConverter,
+            TelemetryRequestToTelemetryConverter telemetryRequestConverter,
+            TelemetryToTelemetryResponseConverter telemetryResponseConverter
     ) {
         this.threadBasedUserCrnProvider = threadBasedUserCrnProvider;
         this.regionConverter = regionConverter;
         this.credentialConverter = credentialConverter;
+        this.telemetryRequestConverter = telemetryRequestConverter;
+        this.telemetryResponseConverter = telemetryResponseConverter;
     }
 
     public EnvironmentCreationDto initCreationDto(EnvironmentRequest request) {
@@ -56,6 +66,7 @@ public class EnvironmentApiConverter {
                 .withCredential(request)
                 .withCreateFreeIpa(request.getCreateFreeIpa() == null ? true : request.getCreateFreeIpa())
                 .withLocation(locationRequestToDto(request.getLocation()))
+                .withTelemetry(telemetryRequestConverter.convert(request.getTelemetry()))
                 .withRegions(request.getRegions());
 
         NullUtil.doIfNotNull(request.getNetwork(), network -> builder.withNetwork(networkRequestToDto(network)));
@@ -101,6 +112,7 @@ public class EnvironmentApiConverter {
                 .withEnvironmentStatus(environmentDto.getStatus().getResponseStatus())
                 .withLocation(locationDtoToResponse(environmentDto.getLocation()))
                 .withCreateFreeIpa(environmentDto.isCreateFreeIpa())
+                .withTelemetry(telemetryResponseConverter.convertFromJson(environmentDto.getTelemetry()))
                 .withRegions(regionConverter.convertRegions(environmentDto.getRegionSet()));
 
         NullUtil.doIfNotNull(environmentDto.getNetwork(), network -> builder.withNetwork(networkDtoToResponse(network)));
@@ -117,6 +129,7 @@ public class EnvironmentApiConverter {
                 .withEnvironmentStatus(environmentDto.getStatus().getResponseStatus())
                 .withLocation(locationDtoToResponse(environmentDto.getLocation()))
                 .withCreateFreeIpa(environmentDto.isCreateFreeIpa())
+                .withTelemetry(telemetryResponseConverter.convertFromJson(environmentDto.getTelemetry()))
                 .withRegions(regionConverter.convertRegions(environmentDto.getRegionSet()));
 
         NullUtil.doIfNotNull(environmentDto.getNetwork(), network -> builder.withNetwork(networkDtoToResponse(network)));
@@ -156,6 +169,7 @@ public class EnvironmentApiConverter {
                 .withRegions(request.getRegions());
         NullUtil.doIfNotNull(request.getNetwork(), network -> builder.withNetwork(networkRequestToDto(network)));
         NullUtil.doIfNotNull(request.getLocation(), location -> builder.withLocation(locationRequestToDto(location)));
+        NullUtil.doIfNotNull(request.getTelemetry(), telemetryRequest -> builder.withTelemetry(telemetryRequestConverter.convert(request.getTelemetry())));
         return builder.build();
     }
 

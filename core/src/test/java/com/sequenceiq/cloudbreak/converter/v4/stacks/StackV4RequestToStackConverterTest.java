@@ -5,6 +5,8 @@ import static com.sequenceiq.cloudbreak.common.type.DefaultApplicationTag.CB_USE
 import static com.sequenceiq.cloudbreak.common.type.DefaultApplicationTag.CB_VERSION;
 import static com.sequenceiq.cloudbreak.common.type.DefaultApplicationTag.OWNER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,7 +40,11 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.authentication.S
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.ClusterV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.instancegroup.InstanceGroupV4Request;
 import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
+import com.sequenceiq.cloudbreak.cloud.model.Logging;
+import com.sequenceiq.cloudbreak.cloud.model.LoggingOutputType;
 import com.sequenceiq.cloudbreak.cloud.model.StackTags;
+import com.sequenceiq.cloudbreak.cloud.model.Telemetry;
+import com.sequenceiq.cloudbreak.cloud.model.WorkloadAnalytics;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.mappable.Mappable;
 import com.sequenceiq.cloudbreak.common.mappable.ProviderParameterCalculator;
@@ -69,6 +75,8 @@ import com.sequenceiq.cloudbreak.workspace.model.User;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 import com.sequenceiq.environment.api.v1.credential.model.response.CredentialResponse;
 import com.sequenceiq.environment.api.v1.environment.model.response.DetailedEnvironmentResponse;
+import com.sequenceiq.environment.api.v1.environment.model.response.LoggingResponse;
+import com.sequenceiq.environment.api.v1.environment.model.response.TelemetryResponse;
 
 public class StackV4RequestToStackConverterTest extends AbstractJsonConverterTest<StackV4Request> {
 
@@ -283,6 +291,53 @@ public class StackV4RequestToStackConverterTest extends AbstractJsonConverterTes
 
         //THEN
         assertEquals(expectedDataLakeId, result.getDatalakeResourceId());
+    }
+
+    @Test
+    public void testMergeGlobalAndStackLevelTelemetry() {
+        // GIVEN
+        TelemetryResponse envTelemetry = new TelemetryResponse();
+        LoggingResponse loggingResponse = new LoggingResponse();
+        loggingResponse.setEnabled(true);
+        loggingResponse.setOutput(LoggingOutputType.S3);
+        envTelemetry.setLogging(loggingResponse);
+        Telemetry stackTelemetry = new Telemetry(
+                null,
+                new WorkloadAnalytics(true, null, null, null, null)
+        );
+        // WHEN
+        Telemetry result = underTest.mergeGlobalAndStackLevelTelemetry(envTelemetry, stackTelemetry);
+        // THEN
+        assertTrue(result.getLogging().isEnabled());
+        assertTrue(result.getWorkloadAnalytics().isEnabled());
+    }
+
+    @Test
+    public void testMergeGlobalAndStackLevelTelemetryOverrideLogging() {
+        // GIVEN
+        TelemetryResponse envTelemetry = new TelemetryResponse();
+        LoggingResponse loggingResponse = new LoggingResponse();
+        loggingResponse.setEnabled(true);
+        loggingResponse.setOutput(LoggingOutputType.S3);
+        envTelemetry.setLogging(loggingResponse);
+        Telemetry stackTelemetry = new Telemetry(
+                new Logging(true, LoggingOutputType.WASB, null),
+                null
+        );
+        // WHEN
+        Telemetry result = underTest.mergeGlobalAndStackLevelTelemetry(envTelemetry, stackTelemetry);
+        // THEN
+        assertEquals(LoggingOutputType.WASB, result.getLogging().getOutputType());
+    }
+
+    @Test
+    public void testMergeGlobalAndStackLevelTelemetryWithNulls() {
+        // GIVEN
+        // WHEN
+        Telemetry result = underTest.mergeGlobalAndStackLevelTelemetry(null, null);
+        // THEN
+        assertNull(result.getLogging());
+        assertNull(result.getWorkloadAnalytics());
     }
 
     @Override

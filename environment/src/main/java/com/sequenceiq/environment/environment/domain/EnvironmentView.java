@@ -37,6 +37,10 @@ public class EnvironmentView extends CompactView implements AuthResource {
     @Column(columnDefinition = "TEXT", nullable = false)
     private Json regions;
 
+    @Convert(converter = JsonToString.class)
+    @Column(columnDefinition = "TEXT")
+    private Json telemetry;
+
     @ManyToOne
     @JoinColumn(nullable = false)
     private Credential credential;
@@ -79,6 +83,14 @@ public class EnvironmentView extends CompactView implements AuthResource {
     public Set<Region> getRegionSet() {
         return JsonUtil.jsonToType(regions.getValue(), new TypeReference<>() {
         });
+    }
+
+    public Json getTelemetry() {
+        return telemetry;
+    }
+
+    public void setTelemetry(Json telemetry) {
+        this.telemetry = telemetry;
     }
 
     public String getCloudPlatform() {

@@ -27,6 +27,8 @@ public class SimpleEnvironmentResponse extends EnvironmentBaseResponse {
 
         private LocationResponse location;
 
+        private TelemetryResponse telemetry;
+
         private EnvironmentNetworkResponse network;
 
         private EnvironmentStatus environmentStatus;
@@ -64,6 +66,11 @@ public class SimpleEnvironmentResponse extends EnvironmentBaseResponse {
             return this;
         }
 
+        public Builder withTelemetry(TelemetryResponse telemetry) {
+            this.telemetry = telemetry;
+            return this;
+        }
+
         public Builder withLocation(LocationResponse location) {
             this.location = location;
             return this;
@@ -96,6 +103,7 @@ public class SimpleEnvironmentResponse extends EnvironmentBaseResponse {
             simpleEnvironmentResponse.setNetwork(network);
             simpleEnvironmentResponse.setEnvironmentStatus(environmentStatus);
             simpleEnvironmentResponse.setCreateFreeIpa(createFreeIpa);
+            simpleEnvironmentResponse.setTelemetry(telemetry);
             return simpleEnvironmentResponse;
         }
     }
