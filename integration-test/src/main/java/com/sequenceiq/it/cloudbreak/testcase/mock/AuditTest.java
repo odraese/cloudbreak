@@ -24,7 +24,6 @@ import com.sequenceiq.it.cloudbreak.context.TestContext;
 import com.sequenceiq.it.cloudbreak.dto.audit.AuditTestDto;
 import com.sequenceiq.it.cloudbreak.dto.blueprint.BlueprintTestDto;
 import com.sequenceiq.it.cloudbreak.dto.database.DatabaseTestDto;
-import com.sequenceiq.it.cloudbreak.dto.imagecatalog.ImageCatalogTestDto;
 import com.sequenceiq.it.cloudbreak.dto.kubernetes.KubernetesTestDto;
 import com.sequenceiq.it.cloudbreak.dto.mpack.MPackTestDto;
 import com.sequenceiq.it.cloudbreak.dto.recipe.RecipeTestDto;
@@ -304,7 +303,7 @@ public class AuditTest extends AbstractIntegrationTest {
 //                .validate();
 //    }
 
-    @Test(dataProvider = TEST_CONTEXT_WITH_MOCK)
+    /*@Test(dataProvider = TEST_CONTEXT_WITH_MOCK)
     @Description(
             given = "there is a running cloudbreak",
             when = "an Image Catalog is created",
@@ -323,6 +322,6 @@ public class AuditTest extends AbstractIntegrationTest {
                 .when(auditTestClient.listV4(), key(catalogName))
                 .then(AuditTestAssertion.listContainsAtLeast(1), key(catalogName))
                 .validate();
-    }
+    }*/
 }
 

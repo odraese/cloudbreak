@@ -13,18 +13,18 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonInclude(Include.NON_NULL)
 public class ImageCatalogV4ShortResponse extends ImageCatalogV4Base {
 
-    @ApiModelProperty(value = ModelDescriptions.ID, required = true)
-    private Long id;
-
     @ApiModelProperty(value = ImageCatalogDescription.DEFAULT, required = true)
     private boolean usedAsDefault;
 
-    public Long getId() {
-        return id;
+    @ApiModelProperty(ModelDescriptions.CRN)
+    private String resourceCrn;
+
+    public String getResourceCrn() {
+        return resourceCrn;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setResourceCrn(String resourceCrn) {
+        this.resourceCrn = resourceCrn;
     }
 
     public boolean isUsedAsDefault() {

@@ -9,7 +9,6 @@ import javax.transaction.Transactional.TxType;
 
 import org.springframework.stereotype.Controller;
 
-import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.ImageCatalogV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.requests.ImageCatalogV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.requests.UpdateImageCatalogV4Request;
@@ -17,10 +16,12 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.responses.ImageCat
 import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.responses.ImageCatalogV4Responses;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.responses.ImagesV4Response;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
+import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
 import com.sequenceiq.cloudbreak.cloud.model.catalog.Images;
 import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
 import com.sequenceiq.cloudbreak.domain.ImageCatalog;
 import com.sequenceiq.cloudbreak.service.image.ImageCatalogService;
+import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 
 @Controller
 @Transactional(TxType.NEVER)
@@ -32,6 +33,9 @@ public class ImageCatalogV4Controller extends NotificationController implements 
 
     @Inject
     private ConverterUtil converterUtil;
+
+    @Inject
+    private ThreadBasedUserCrnProvider threadBasedUserCrnProvider;
 
     @Override
     public ImageCatalogV4Responses list(Long workspaceId) {
@@ -51,7 +55,10 @@ public class ImageCatalogV4Controller extends NotificationController implements 
 
     @Override
     public ImageCatalogV4Response create(Long workspaceId, ImageCatalogV4Request request) {
-        ImageCatalog imageCatalog = imageCatalogService.createForLoggedInUser(converterUtil.convert(request, ImageCatalog.class), workspaceId);
+        String accountId = threadBasedUserCrnProvider.getAccountId();
+        String creator = threadBasedUserCrnProvider.getUserCrn();
+        ImageCatalog catalogToSave = converterUtil.convert(request, ImageCatalog.class);
+        ImageCatalog imageCatalog = imageCatalogService.createForLoggedInUser(catalogToSave, workspaceId, accountId, creator);
         notify(ResourceEvent.IMAGE_CATALOG_CREATED);
         return converterUtil.convert(imageCatalog, ImageCatalogV4Response.class);
     }
