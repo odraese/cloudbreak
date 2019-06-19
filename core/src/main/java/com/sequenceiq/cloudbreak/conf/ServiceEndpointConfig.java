@@ -47,6 +47,15 @@ public class ServiceEndpointConfig {
     @Value("${cb.freeipa.serviceid:}")
     private String freeipaServiceId;
 
+    @Value("${cb.sdx.url}")
+    private String sdxServiceUrl;
+
+    @Value("${cb.sdx.serviceId:}")
+    private String sdxServiceId;
+
+    @Value("${cb.sdx.contextPath}")
+    private String sdxRootContextPath;
+
     @Bean
     public ServiceAddressResolver serviceAddressResolver() {
         return new RetryingServiceAddressResolver(new DNSServiceAddressResolver(), resolvingTimeout);
@@ -58,17 +67,22 @@ public class ServiceEndpointConfig {
     }
 
     @Bean
-    public String identityServerUrl()  throws ServiceAddressResolvingException {
+    public String identityServerUrl() throws ServiceAddressResolvingException {
         return serviceAddressResolver().resolveUrl(identityServiceUrl, "http", identityServiceId);
     }
 
     @Bean
-    public String environmentServerUrl()  throws ServiceAddressResolvingException {
+    public String environmentServerUrl() throws ServiceAddressResolvingException {
         return serviceAddressResolver().resolveUrl(environmentServiceUrl + environmentContextPath, "http", environmentServiceId);
     }
 
     @Bean
-    public String freeIpaServerUrl()  throws ServiceAddressResolvingException {
+    public String freeIpaServerUrl() throws ServiceAddressResolvingException {
         return serviceAddressResolver().resolveUrl(freeipaServiceUrl + freeipaContextPath, "http", freeipaServiceId);
+    }
+
+    @Bean
+    public String sdxServerUrl() throws ServiceAddressResolvingException {
+        return serviceAddressResolver().resolveUrl(sdxServiceUrl + sdxRootContextPath, "http", sdxServiceId);
     }
 }
