@@ -5,8 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.sequenceiq.cloudbreak.api.endpoint.v4.database.base.DatabaseType;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.domain.Template;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.gateway.Gateway;
@@ -14,13 +16,13 @@ import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
 import com.sequenceiq.cloudbreak.dto.KerberosConfig;
+import com.sequenceiq.cloudbreak.dto.LdapView;
 import com.sequenceiq.cloudbreak.template.filesystem.BaseFileSystemConfigurationsView;
 import com.sequenceiq.cloudbreak.template.model.GeneralClusterConfigs;
 import com.sequenceiq.cloudbreak.template.model.HdfConfigs;
 import com.sequenceiq.cloudbreak.template.views.BlueprintView;
 import com.sequenceiq.cloudbreak.template.views.GatewayView;
 import com.sequenceiq.cloudbreak.template.views.HostgroupView;
-import com.sequenceiq.cloudbreak.dto.LdapView;
 import com.sequenceiq.cloudbreak.template.views.SharedServiceConfigsView;
 
 public class TemplatePreparationObject {
@@ -31,7 +33,7 @@ public class TemplatePreparationObject {
 
     private final BlueprintView blueprintView;
 
-    private final Set<RDSConfig> rdsConfigs;
+    private final Map<String, RDSConfig> rdsConfigs;
 
     private final Set<HostgroupView> hostgroupViews;
 
@@ -52,7 +54,10 @@ public class TemplatePreparationObject {
     private final Map<String, Object> fixInputs;
 
     private TemplatePreparationObject(Builder builder) {
-        rdsConfigs = builder.rdsConfigs;
+        rdsConfigs = builder.rdsConfigs.stream().collect(Collectors.toMap(
+                rdsConfig -> rdsConfig.getType().toLowerCase(),
+                Function.identity()
+        ));
         hostgroupViews = builder.hostgroupViews;
         stackRepoDetailsHdpVersion = builder.stackRepoDetailsHdpVersion;
         ldapConfig = builder.ldapConfig;
@@ -68,7 +73,11 @@ public class TemplatePreparationObject {
     }
 
     public Set<RDSConfig> getRdsConfigs() {
-        return rdsConfigs;
+        return Set.copyOf(rdsConfigs.values());
+    }
+
+    public RDSConfig getRdsConfig(DatabaseType type) {
+        return rdsConfigs.get(type.name().toLowerCase());
     }
 
     public Set<HostgroupView> getHostgroupViews() {
